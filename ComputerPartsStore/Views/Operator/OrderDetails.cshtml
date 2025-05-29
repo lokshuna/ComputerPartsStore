@@ -1,0 +1,301 @@
+﻿@model ComputerPartsStore.Models.Order_list
+@{
+    ViewData["Title"] = $"Замовлення #{Model.Overlay_id}";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-file-invoice me-2"></i>Замовлення #@Model.Overlay_id
+        </h2>
+        <a href="@Url.Action("Index", "Operator")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Повернутися до списку
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Customer Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Інформація про клієнта
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ім'я:</strong> @Model.Customer.Name @Model.Customer.Second_Name</p>
+                            <p><strong>Телефон:</strong> @Model.Customer.Phone_Number</p>
+                            <p><strong>Email:</strong> @Model.Customer.User_login</p>
+                        </div>
+                        <div class="col-md-6">
+                            @if (Model.Customer.Address != null)
+                            {
+                                <p><strong>Адреса доставки:</strong></p>
+                                <p class="ms-3">
+                                    @Model.Customer.Address.City, @Model.Customer.Address.Region
+                                    <br>
+                                    Буд. @Model.Customer.Address.House_Number
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Товари в замовленні
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in Model.Order_Items)
+                    {
+                        <div class="row align-items-center border-bottom py-3">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">@item.Accessories.Accessory_Name</h6>
+                                <small class="text-muted">@item.Accessories.Catalog.Accessory_type</small>
+                                <br>
+                                <small class="text-muted">@item.Accessories.Specifications</small>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <span class="badge bg-primary">@item.Item_Count шт.</span>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <strong>@item.Item_Price.ToString("N0") ₴</strong>
+                                <br>
+                                <small class="text-muted">за одиницю</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <h6 class="text-primary mb-0">@((item.Item_Price * item.Item_Count).ToString("N0")) ₴</h6>
+                            </div>
+                        </div>
+                    }
+                    <div class="row mt-3">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between">
+                                <strong>Загальна сума:</strong>
+                                <strong class="text-primary">
+                                    @Model.Order_Items.Sum(oi => oi.Item_Price * oi.Item_Count).ToString("N0") ₴
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History -->
+            @if (Model.Logs.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Історія замовлення
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            @foreach (var log in Model.Logs.OrderBy(l => l.Last_Change))
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">@log.Action</h6>
+                                        <small class="text-muted">
+                                            @log.Last_Change.ToString("dd.MM.yyyy HH:mm") - @log.User.Name @log.User.Second_Name
+                                        </small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Order Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Статус замовлення
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Поточний статус:</label>
+                        <div>
+                            <span class="badge bg-@GetStatusColor(Model.Order_status_id) fs-6">
+                                @Model.Order_Status.Status
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Дата створення:</label>
+                        <p>@Model.Order_Date.ToString("dd.MM.yyyy HH:mm")</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Номер відстеження:</label>
+                            <p><code>@Model.TrackingNumber</code></p>
+                        </div>
+                    }
+
+                    <!-- Status Update Form -->
+                    <form id="statusUpdateForm">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label">Змінити статус:</label>
+                            <select class="form-select" id="newStatus">
+                                @foreach (var status in (IEnumerable<ComputerPartsStore.Models.Order_Status>)ViewBag.OrderStatuses)
+                                {
+                                    <option value="@status.Order_status_id"
+                                    @(status.Order_status_id == Model.Order_status_id ? "selected" : "")>
+                                        @status.Status
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Коментар:</label>
+                            <textarea class="form-control" id="statusNotes" rows="3"
+                                      placeholder="Додайте коментар до зміни статусу..."></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary" onclick="updateStatus()">
+                                <i class="fas fa-save me-2"></i>Оновити статус
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Швидкі дії
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Order_status_id == 1)
+                    {
+                        <button class="btn btn-success btn-sm w-100 mb-2" onclick="quickUpdateStatus(2)">
+                            <i class="fas fa-check me-2"></i>Прийняти замовлення
+                        </button>
+                    }
+
+                    @if (Model.Order_status_id <= 4)
+                    {
+                        <button class="btn btn-warning btn-sm w-100 mb-2" onclick="quickUpdateStatus(7)">
+                            <i class="fas fa-times me-2"></i>Скасувати замовлення
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-left: 2px solid #dee2e6;
+    }
+
+        .timeline-item:last-child {
+            border-left: none;
+        }
+
+    .timeline-marker {
+        position: absolute;
+        left: -6px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #007bff;
+        border: 2px solid white;
+    }
+
+    .timeline-content {
+        margin-left: 1rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function updateStatus() {
+            const newStatus = document.getElementById('newStatus').value;
+            const notes = document.getElementById('statusNotes').value;
+
+            $.post('@Url.Action("UpdateOrderStatus", "Operator")', {
+                orderId: @Model.Order_id,
+                statusId: newStatus,
+                notes: notes
+            }, function(data) {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+        }
+
+        function quickUpdateStatus(statusId) {
+            const statusNames = {
+                2: 'Прийняти замовлення',
+                7: 'Скасувати замовлення'
+            };
+
+            if (confirm(`Ви впевнені, що хочете ${statusNames[statusId].toLowerCase()}?`)) {
+                $.post('@Url.Action("UpdateOrderStatus", "Operator")', {
+                    orderId: @Model.Order_id,
+                    statusId: statusId,
+                    notes: statusNames[statusId]
+                }, function(data) {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetStatusColor(int statusId)
+    {
+        return statusId switch
+        {
+            1 => "warning",      // Нове
+            2 => "info",         // Прийняте
+            3 => "primary",      // Формується
+            4 => "secondary",    // Сформоване
+            5 => "info",         // Доставляється
+            6 => "success",      // Доставлене
+            7 => "danger",       // Скасоване
+            _ => "dark"
+        };
+    }
+}

@@ -1,0 +1,305 @@
+﻿@model IEnumerable<ComputerPartsStore.Models.Order_list>
+@{
+    ViewData["Title"] = "Панель комірника";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-warehouse me-2"></i>Панель комірника
+        </h2>
+        <a href="@Url.Action("Inventory", "Storekeeper")" class="btn btn-outline-primary">
+            <i class="fas fa-boxes me-2"></i>Управління складом
+        </a>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Очікують збирання</h6>
+                            <h3 class="mb-0">@Model.Count(o => o.Order_status_id == 2)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Збираються</h6>
+                            <h3 class="mb-0">@Model.Count(o => o.Order_status_id == 3)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-box-open fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Готові до відправки</h6>
+                            <h3 class="mb-0">@Model.Count(o => o.Order_status_id == 4)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Відправлені</h6>
+                            <h3 class="mb-0">@Model.Count(o => o.Order_status_id == 5)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shipping-fast fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Замовлення в роботі
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>№ Замовлення</th>
+                                <th>Клієнт</th>
+                                <th>Адреса</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                                <th>Товарів</th>
+                                <th>Трекінг</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.OrderBy(o => o.Order_status_id).ThenBy(o => o.Order_Date))
+                            {
+                                <tr class="@(order.Order_status_id == 2 ? "table-warning" : "")">
+                                    <td>
+                                        <strong>#@order.Overlay_id</strong>
+                                    </td>
+                                    <td>
+                                        @order.Customer.Name @order.Customer.Second_Name
+                                        <br>
+                                        <small class="text-muted">@order.Customer.Phone_Number</small>
+                                    </td>
+                                    <td>
+                                        @if (order.Customer.Address != null)
+                                        {
+                                            <span>@order.Customer.Address.City</span>
+                                            <br>
+                                            <small class="text-muted">
+                                                @order.Customer.Address.Region, буд. @order.Customer.Address.House_Number
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @order.Order_Date.ToString("dd.MM.yyyy")
+                                        <br>
+                                        <small class="text-muted">@order.Order_Date.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@GetStatusColor(order.Order_status_id)">
+                                            @order.Order_Status.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            @order.Order_Items.Sum(oi => oi.Item_Count) шт.
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(order.TrackingNumber))
+                                        {
+                                            <code class="small">@order.TrackingNumber</code>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("OrderDetails", "Storekeeper", new { id = order.Order_id })"
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+
+                                            @if (order.Order_status_id == 2)
+                                            {
+                                                <button class="btn btn-warning btn-sm"
+                                                        onclick="startPacking(@order.Order_id)">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            }
+                                            else if (order.Order_status_id == 3)
+                                            {
+                                                <button class="btn btn-success btn-sm"
+                                                        onclick="finishPacking(@order.Order_id)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            }
+                                            else if (order.Order_status_id == 4)
+                                            {
+                                                <button class="btn btn-info btn-sm"
+                                                        onclick="shipOrder(@order.Order_id)">
+                                                    <i class="fas fa-shipping-fast"></i>
+                                                </button>
+                                            }
+
+                                            <a href="@Url.Action("PackingList", "Storekeeper", new { orderId = order.Order_id })"
+                                               class="btn btn-outline-secondary btn-sm" target="_blank">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 text-muted">Замовлень в роботі немає</h4>
+                    <p class="text-muted">Нові замовлення для збирання з'являться тут</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Ship Order Modal -->
+<div class="modal fade" id="shipOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Відправити замовлення</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="shipOrderForm">
+                    <input type="hidden" id="shipOrderId" />
+                    <div class="mb-3">
+                        <label class="form-label">Номер відстеження:</label>
+                        <input type="text" class="form-control" id="trackingNumber"
+                               placeholder="Введіть номер відстеження (залиште порожнім для автогенерації)">
+                        <small class="text-muted">Якщо не вказати, номер буде згенеровано автоматично</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" onclick="confirmShipOrder()">
+                    <i class="fas fa-shipping-fast me-2"></i>Відправити
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function startPacking(orderId) {
+            if (confirm('Розпочати збирання замовлення?')) {
+                $.post('@Url.Action("StartPacking", "Storekeeper")', {
+                    orderId: orderId
+                }, function(data) {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                });
+            }
+        }
+
+        function finishPacking(orderId) {
+            if (confirm('Завершити збирання замовлення?')) {
+                $.post('@Url.Action("FinishPacking", "Storekeeper")', {
+                    orderId: orderId
+                }, function(data) {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                });
+            }
+        }
+
+        function shipOrder(orderId) {
+            document.getElementById('shipOrderId').value = orderId;
+            document.getElementById('trackingNumber').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('shipOrderModal'));
+            modal.show();
+        }
+
+        function confirmShipOrder() {
+            const orderId = document.getElementById('shipOrderId').value;
+            const trackingNumber = document.getElementById('trackingNumber').value;
+
+            $.post('@Url.Action("ShipOrder", "Storekeeper")', {
+                orderId: orderId,
+                trackingNumber: trackingNumber
+            }, function(data) {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('shipOrderModal'));
+                    modal.hide();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+        }
+    </script>
+}
+
+@functions {
+    private string GetStatusColor(int statusId)
+    {
+        return statusId switch
+        {
+            2 => "warning",      // Прийняте
+            3 => "primary",      // Формується
+            4 => "secondary",    // Сформоване
+            5 => "info",         // Доставляється
+            _ => "dark"
+        };
+    }
+}

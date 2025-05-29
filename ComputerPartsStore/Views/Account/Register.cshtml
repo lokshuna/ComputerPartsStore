@@ -1,0 +1,116 @@
+﻿@model ComputerPartsStore.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Реєстрація";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg mt-4">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Реєстрація нового користувача
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Login Information -->
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-key me-2"></i>Дані для входу
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Login" class="form-label">Логін</label>
+                                <input asp-for="Login" class="form-control" placeholder="Введіть логін" />
+                                <span asp-validation-for="Login" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Password" class="form-label">Пароль</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Введіть пароль" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <h5 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-user me-2"></i>Персональні дані
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label">Ім'я</label>
+                                <input asp-for="Name" class="form-control" placeholder="Введіть ім'я" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="SecondName" class="form-label">Прізвище</label>
+                                <input asp-for="SecondName" class="form-control" placeholder="Введіть прізвище" />
+                                <span asp-validation-for="SecondName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Patronymic" class="form-label">По батькові</label>
+                                <input asp-for="Patronymic" class="form-control" placeholder="Введіть по батькові" />
+                                <span asp-validation-for="Patronymic" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label">Телефон</label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="380671234567" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <h5 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-map-marker-alt me-2"></i>Адреса доставки
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="City" class="form-label">Місто</label>
+                                <input asp-for="City" class="form-control" placeholder="Введіть місто" />
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Region" class="form-label">Регіон</label>
+                                <input asp-for="Region" class="form-control" placeholder="Введіть регіон" />
+                                <span asp-validation-for="Region" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="HouseNumber" class="form-label">Номер будинку</label>
+                            <input asp-for="HouseNumber" type="number" class="form-control" placeholder="Введіть номер будинку" />
+                            <span asp-validation-for="HouseNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Зареєструватися
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-0">
+                        Вже маєте акаунт?
+                        <a href="@Url.Action("Login", "Account")" class="text-decoration-none">
+                            Увійти
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

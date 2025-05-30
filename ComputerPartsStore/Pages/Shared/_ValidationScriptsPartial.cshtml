@@ -1,2 +1,211 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    // Custom validation messages in Ukrainian
+    if ($.validator) {
+        $.validator.messages = {
+            required: "Це поле обов'язкове для заповнення",
+            email: "Введіть коректну email адресу",
+            url: "Введіть коректний URL",
+            date: "Введіть коректну дату",
+            dateISO: "Введіть коректну дату (ISO)",
+            number: "Введіть коректне число",
+            digits: "Введіть тільки цифри",
+            creditcard: "Введіть коректний номер кредитної картки",
+            equalTo: "Значення повинні співпадати",
+            maxlength: $.validator.format("Введіть не більше {0} символів"),
+            minlength: $.validator.format("Введіть не менше {0} символів"),
+            rangelength: $.validator.format("Введіть від {0} до {1} символів"),
+            range: $.validator.format("Введіть число від {0} до {1}"),
+            max: $.validator.format("Введіть число не більше {0}"),
+            min: $.validator.format("Введіть число не менше {0}")
+        };
+
+        // Custom validation methods
+        $.validator.addMethod("phone", function(value, element) {
+            return this.optional(element) || /^380\d{9}$/.test(value);
+        }, "Введіть коректний номер телефону (380XXXXXXXXX)");
+
+        $.validator.addMethod("ukrainianname", function(value, element) {
+            return this.optional(element) || /^[а-яА-ЯІіЇїЄєҐґ'\-\s]+$/.test(value);
+        }, "Введіть коректне українське ім'я");
+
+        // Custom validation for password strength
+        $.validator.addMethod("strongpassword", function(value, element) {
+            return this.optional(element) || (
+                value.length >= 6 &&
+                /[a-z]/.test(value) &&
+                /[A-Z]/.test(value) &&
+                /\d/.test(value)
+            );
+        }, "Пароль повинен містити мінімум 6 символів, включаючи великі і малі літери та цифри");
+
+        // Apply custom styling to validation errors
+        $.validator.setDefaults({
+            errorClass: "is-invalid",
+            validClass: "is-valid",
+            errorPlacement: function(error, element) {
+                if (element.parent().hasClass('input-group')) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
+                error.addClass('invalid-feedback');
+            },
+            highlight: function(element, errorClass, validClass) {
+                $(element).addClass(errorClass).removeClass(validClass);
+            },
+            unhighlight: function(element, errorClass, validClass) {
+                $(element).removeClass(errorClass).addClass(validClass);
+            }
+        });
+    }
+
+    // Real-time validation for common fields
+    $(document).ready(function() {
+        // Phone number formatting
+        $('input[name*="Phone"], input[name*="phone"]').on('input', function() {
+            var value = this.value.replace(/\D/g, '');
+            if (value.length > 0 && !value.startsWith('380')) {
+                value = '380' + value;
+            }
+            if (value.length > 12) {
+                value = value.slice(0, 12);
+            }
+            this.value = value;
+        });
+
+        // Real-time email validation
+        $('input[type="email"]').on('blur', function() {
+            var email = $(this).val();
+            if (email && !isValidEmail(email)) {
+                $(this).addClass('is-invalid');
+                showFieldError($(this), 'Введіть коректну email адресу');
+            } else {
+                $(this).removeClass('is-invalid');
+                hideFieldError($(this));
+            }
+        });
+
+        // Real-time phone validation
+        $('input[name*="Phone"], input[name*="phone"]').on('blur', function() {
+            var phone = $(this).val();
+            if (phone && !isValidPhone(phone)) {
+                $(this).addClass('is-invalid');
+                showFieldError($(this), 'Введіть коректний номер телефону (380XXXXXXXXX)');
+            } else {
+                $(this).removeClass('is-invalid');
+                hideFieldError($(this));
+            }
+        });
+
+        // Password strength indicator
+        $('input[type="password"]').on('keyup', function() {
+            var password = $(this).val();
+            var strength = getPasswordStrength(password);
+            showPasswordStrength($(this), strength);
+        });
+    });
+
+
+    function isValidPhone(phone) {
+        var re = /^380\d{9}$/;
+        return re.test(phone.replace(/\D/g, ''));
+    }
+
+    function getPasswordStrength(password) {
+        var strength = 0;
+        if (password.length >= 6) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[^a-zA-Z\d]/.test(password)) strength++;
+        return strength;
+    }
+
+    function showPasswordStrength(element, strength) {
+        var strengthIndicator = element.parent().find('.password-strength');
+        if (strengthIndicator.length === 0) {
+            strengthIndicator = $('<div class="password-strength mt-1"></div>');
+            element.parent().append(strengthIndicator);
+        }
+
+        var strengthText = ['Дуже слабкий', 'Слабкий', 'Середній', 'Сильний', 'Дуже сильний'];
+        var strengthClass = ['text-danger', 'text-warning', 'text-info', 'text-success', 'text-primary'];
+
+        if (strength > 0) {
+            strengthIndicator.html(
+                '<small class="' + strengthClass[strength - 1] + '">' +
+                '<i class="fas fa-shield-alt me-1"></i>' +
+                'Пароль: ' + strengthText[strength - 1] +
+                '</small>'
+            );
+        } else {
+            strengthIndicator.empty();
+        }
+    }
+
+    function showFieldError(element, message) {
+        hideFieldError(element);
+        var errorDiv = $('<div class="invalid-feedback"></div>');
+        errorDiv.text(message);
+        errorDiv.attr('data-error-for', element.attr('name'));
+        element.after(errorDiv);
+    }
+
+    function hideFieldError(element) {
+        var existingError = element.parent().find('[data-error-for="' + element.attr('name') + '"]');
+        existingError.remove();
+    }
+
+    // Form submission validation
+    $('form').on('submit', function(e) {
+        var form = $(this);
+        var isValid = true;
+
+        // Check required fields
+        form.find('input[required], select[required], textarea[required]').each(function() {
+            if (!$(this).val().trim()) {
+                $(this).addClass('is-invalid');
+                showFieldError($(this), 'Це поле обов\'язкове');
+                isValid = false;
+            }
+        });
+
+        // Check email fields
+        form.find('input[type="email"]').each(function() {
+            if ($(this).val() && !isValidEmail($(this).val())) {
+                $(this).addClass('is-invalid');
+                showFieldError($(this), 'Введіть коректну email адресу');
+                isValid = false;
+            }
+        });
+
+        // Check phone fields
+        form.find('input[name*="Phone"], input[name*="phone"]').each(function() {
+            if ($(this).val() && !isValidPhone($(this).val())) {
+                $(this).addClass('is-invalid');
+                showFieldError($(this), 'Введіть коректний номер телефону');
+                isValid = false;
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+
+            // Scroll to first error
+            var firstError = form.find('.is-invalid').first();
+            if (firstError.length) {
+                $('html, body').animate({
+                    scrollTop: firstError.offset().top - 100
+                }, 500);
+            }
+
+            // Show error toast
+            if (typeof showToast === 'function') {
+                showToast('Будь ласка, виправте помилки у формі', 'error');
+            }
+        }
+    });
+</script>

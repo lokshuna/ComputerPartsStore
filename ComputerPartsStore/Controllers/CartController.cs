@@ -27,84 +27,147 @@ namespace ComputerPartsStore.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
         {
-            var product = await _context.Accessories.FindAsync(productId);
-            if (product == null || product.Accessory_Availability != "В наявності")
+            try
             {
-                return Json(new { success = false, message = "Товар недоступний" });
-            }
-
-            var cart = GetCart();
-            var existingItem = cart.FirstOrDefault(c => c.Accessory_id == productId);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity += quantity;
-            }
-            else
-            {
-                cart.Add(new CartItem
+                var product = await _context.Accessories.FindAsync(productId);
+                if (product == null)
                 {
-                    Accessory_id = product.Accessory_id,
-                    Accessory_Name = product.Accessory_Name,
-                    Accessory_Price = product.Accessory_Price,
-                    Quantity = quantity
+                    return Json(new { success = false, message = "Товар не знайдено" });
+                }
+
+                if (product.Accessory_Availability != "В наявності")
+                {
+                    return Json(new { success = false, message = "Товар недоступний для замовлення" });
+                }
+
+                if (quantity < 1 || quantity > 10)
+                {
+                    return Json(new { success = false, message = "Неправильна кількість товару" });
+                }
+
+                var cart = GetCart();
+                var existingItem = cart.FirstOrDefault(c => c.Accessory_id == productId);
+
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += quantity;
+                    // Перевіряємо максимальну кількість
+                    if (existingItem.Quantity > 10)
+                    {
+                        existingItem.Quantity = 10;
+                        SaveCart(cart);
+                        return Json(new
+                        {
+                            success = true,
+                            message = "Товар додано до кошика (максимум 10 шт.)",
+                            cartCount = cart.Sum(c => c.Quantity)
+                        });
+                    }
+                }
+                else
+                {
+                    cart.Add(new CartItem
+                    {
+                        Accessory_id = product.Accessory_id,
+                        Accessory_Name = product.Accessory_Name,
+                        Accessory_Price = product.Accessory_Price,
+                        Quantity = quantity
+                    });
+                }
+
+                SaveCart(cart);
+                return Json(new
+                {
+                    success = true,
+                    message = $"Товар додано до кошика ({quantity} шт.)",
+                    cartCount = cart.Sum(c => c.Quantity)
                 });
             }
-
-            SaveCart(cart);
-            return Json(new
+            catch (Exception ex)
             {
-                success = true,
-                message = "Товар додано до кошика",
-                cartCount = cart.Sum(c => c.Quantity)
-            });
+                return Json(new { success = false, message = "Помилка при додаванні товару" });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetCartCount()
+        {
+            try
+            {
+                var cart = GetCart();
+                var count = cart.Sum(c => c.Quantity);
+                return Json(count);
+            }
+            catch
+            {
+                return Json(0);
+            }
         }
 
         [HttpPost]
         public IActionResult UpdateQuantity(int productId, int quantity)
         {
-            var cart = GetCart();
-            var item = cart.FirstOrDefault(c => c.Accessory_id == productId);
-
-            if (item != null)
+            try
             {
-                if (quantity <= 0)
+                var cart = GetCart();
+                var item = cart.FirstOrDefault(c => c.Accessory_id == productId);
+
+                if (item != null)
                 {
-                    cart.Remove(item);
+                    if (quantity <= 0)
+                    {
+                        cart.Remove(item);
+                    }
+                    else if (quantity > 10)
+                    {
+                        item.Quantity = 10;
+                    }
+                    else
+                    {
+                        item.Quantity = quantity;
+                    }
+
+                    SaveCart(cart);
                 }
-                else
+
+                return Json(new
                 {
-                    item.Quantity = quantity;
-                }
-                SaveCart(cart);
+                    success = true,
+                    cartTotal = cart.Sum(c => c.Total),
+                    cartCount = cart.Sum(c => c.Quantity)
+                });
             }
-
-            return Json(new
+            catch
             {
-                success = true,
-                cartTotal = cart.Sum(c => c.Total),
-                cartCount = cart.Sum(c => c.Quantity)
-            });
+                return Json(new { success = false, message = "Помилка при оновленні кошика" });
+            }
         }
 
         [HttpPost]
         public IActionResult RemoveFromCart(int productId)
         {
-            var cart = GetCart();
-            var item = cart.FirstOrDefault(c => c.Accessory_id == productId);
-
-            if (item != null)
+            try
             {
-                cart.Remove(item);
-                SaveCart(cart);
+                var cart = GetCart();
+                var item = cart.FirstOrDefault(c => c.Accessory_id == productId);
+
+                if (item != null)
+                {
+                    cart.Remove(item);
+                    SaveCart(cart);
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    cartTotal = cart.Sum(c => c.Total),
+                    cartCount = cart.Sum(c => c.Quantity)
+                });
             }
-
-            return Json(new
+            catch
             {
-                success = true,
-                cartTotal = cart.Sum(c => c.Total),
-                cartCount = cart.Sum(c => c.Quantity)
-            });
+                return Json(new { success = false, message = "Помилка при видаленні товару" });
+            }
         }
 
         [Authorize]
@@ -113,6 +176,7 @@ namespace ComputerPartsStore.Controllers
             var cart = GetCart();
             if (!cart.Any())
             {
+                TempData["Error"] = "Ваш кошик порожній";
                 return RedirectToAction("Index");
             }
 
@@ -120,6 +184,12 @@ namespace ComputerPartsStore.Controllers
             var user = await _context.Users
                 .Include(u => u.Address)
                 .FirstOrDefaultAsync(u => u.User_id == userId);
+
+            if (user == null)
+            {
+                TempData["Error"] = "Користувача не знайдено";
+                return RedirectToAction("Login", "Account");
+            }
 
             var viewModel = new CheckoutViewModel
             {
@@ -137,57 +207,78 @@ namespace ComputerPartsStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
-            var cart = GetCart();
-            if (!cart.Any())
+            try
             {
-                return RedirectToAction("Index");
-            }
-
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            // Create order
-            var order = new Order_list
-            {
-                Customer_id = userId,
-                Order_status_id = 1, // New order
-                Overlay_id = new Random().Next(100000, 999999),
-                Order_Date = DateTime.Now
-            };
-
-            _context.Order_lists.Add(order);
-            await _context.SaveChangesAsync();
-
-            // Add order items
-            foreach (var item in cart)
-            {
-                var orderItem = new Order_Item
+                var cart = GetCart();
+                if (!cart.Any())
                 {
-                    Order_id = order.Order_id,
-                    Accessory_id = item.Accessory_id,
-                    Item_Price = (int)item.Accessory_Price,
-                    Item_Count = item.Quantity
+                    TempData["Error"] = "Ваш кошик порожній";
+                    return RedirectToAction("Index");
+                }
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+                // Перевіряємо доступність всіх товарів
+                foreach (var cartItem in cart)
+                {
+                    var product = await _context.Accessories.FindAsync(cartItem.Accessory_id);
+                    if (product == null || product.Accessory_Availability != "В наявності")
+                    {
+                        TempData["Error"] = $"Товар '{cartItem.Accessory_Name}' більше недоступний";
+                        return RedirectToAction("Index");
+                    }
+                }
+
+                // Створюємо замовлення
+                var order = new Order_list
+                {
+                    Customer_id = userId,
+                    Order_status_id = 1, // Нове замовлення
+                    Overlay_id = new Random().Next(100000, 999999),
+                    Order_Date = DateTime.Now,
+                    TrackingNumber = ""
                 };
 
-                _context.Order_Items.Add(orderItem);
+                _context.Order_lists.Add(order);
+                await _context.SaveChangesAsync();
+
+                // Додаємо товари до замовлення
+                foreach (var item in cart)
+                {
+                    var orderItem = new Order_Item
+                    {
+                        Order_id = order.Order_id,
+                        Accessory_id = item.Accessory_id,
+                        Item_Price = (int)item.Accessory_Price,
+                        Item_Count = item.Quantity
+                    };
+
+                    _context.Order_Items.Add(orderItem);
+                }
+
+                // Додаємо запис в лог
+                var log = new Log
+                {
+                    Order_id = order.Order_id,
+                    User_id = userId,
+                    Last_Change = DateTime.Now,
+                    Action = "Замовлення створено клієнтом"
+                };
+
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+
+                // Очищаємо кошик
+                HttpContext.Session.Remove(CartSessionKey);
+
+                TempData["OrderSuccess"] = $"Замовлення #{order.Overlay_id} успішно оформлено! Очікуйте дзвінка оператора.";
+                return RedirectToAction("OrderDetails", new { id = order.Order_id });
             }
-
-            // Add log entry
-            var log = new Log
+            catch (Exception ex)
             {
-                Order_id = order.Order_id,
-                User_id = userId,
-                Last_Change = DateTime.Now,
-                Action = "Замовлення створено"
-            };
-
-            _context.Logs.Add(log);
-            await _context.SaveChangesAsync();
-
-            // Clear cart
-            HttpContext.Session.Remove(CartSessionKey);
-
-            TempData["OrderSuccess"] = $"Замовлення #{order.Overlay_id} успішно оформлено!";
-            return RedirectToAction("OrderDetails", new { id = order.Order_id });
+                TempData["Error"] = "Помилка при оформленні замовлення. Спробуйте ще раз.";
+                return RedirectToAction("Checkout");
+            }
         }
 
         [Authorize]
@@ -205,7 +296,8 @@ namespace ComputerPartsStore.Controllers
 
             if (order == null)
             {
-                return NotFound();
+                TempData["Error"] = "Замовлення не знайдено";
+                return RedirectToAction("MyOrders");
             }
 
             return View(order);
@@ -227,12 +319,6 @@ namespace ComputerPartsStore.Controllers
             return View(orders);
         }
 
-        public int GetCartCount()
-        {
-            var cart = GetCart();
-            return cart.Sum(c => c.Quantity);
-        }
-
         private List<CartItem> GetCart()
         {
             var cartJson = HttpContext.Session.GetString(CartSessionKey);
@@ -241,13 +327,30 @@ namespace ComputerPartsStore.Controllers
                 return new List<CartItem>();
             }
 
-            return JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
+            try
+            {
+                return JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
+            }
+            catch
+            {
+                // Якщо не вдалося десеріалізувати, повертаємо порожній кошик
+                HttpContext.Session.Remove(CartSessionKey);
+                return new List<CartItem>();
+            }
         }
 
         private void SaveCart(List<CartItem> cart)
         {
-            var cartJson = JsonSerializer.Serialize(cart);
-            HttpContext.Session.SetString(CartSessionKey, cartJson);
+            try
+            {
+                var cartJson = JsonSerializer.Serialize(cart);
+                HttpContext.Session.SetString(CartSessionKey, cartJson);
+            }
+            catch
+            {
+                // У випадку помилки очищаємо сесію
+                HttpContext.Session.Remove(CartSessionKey);
+            }
         }
     }
 }

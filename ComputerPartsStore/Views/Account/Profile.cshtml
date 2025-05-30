@@ -1,0 +1,247 @@
+﻿@model ComputerPartsStore.Models.User
+@{
+    ViewData["Title"] = "Мій профіль";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-custom">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Мій профіль
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- User Avatar Section -->
+                    <div class="text-center mb-4">
+                        <div class="user-avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                             style="width: 80px; height: 80px; font-size: 2rem;">
+                            @Model.Name.Substring(0, 1)@Model.Second_Name.Substring(0, 1)
+                        </div>
+                        <h5 class="mt-3 mb-1">@Model.Name @Model.Second_Name</h5>
+                        <p class="text-muted">@Model.Role_Name</p>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-user me-2 text-primary"></i>Ім'я
+                            </label>
+                            <div class="form-control-plaintext bg-light rounded p-3">
+                                @Model.Name
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-user me-2 text-primary"></i>Прізвище
+                            </label>
+                            <div class="form-control-plaintext bg-light rounded p-3">
+                                @Model.Second_Name
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Patronymic))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-user me-2 text-primary"></i>По батькові
+                            </label>
+                            <div class="form-control-plaintext bg-light rounded p-3">
+                                @Model.Patronymic
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-envelope me-2 text-primary"></i>Логін/Email
+                            </label>
+                            <div class="form-control-plaintext bg-light rounded p-3">
+                                @Model.User_login
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-phone me-2 text-primary"></i>Телефон
+                            </label>
+                            <div class="form-control-plaintext bg-light rounded p-3">
+                                +@Model.Phone_Number.ToString().Insert(3, " ").Insert(7, " ").Insert(11, "-").Insert(14, "-")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-tag me-2 text-primary"></i>Роль в системі
+                        </label>
+                        <div class="form-control-plaintext bg-light rounded p-3">
+                            <span class="badge bg-@(Model.Role_Name == "Operator" ? "primary" : Model.Role_Name == "Storekeeper" ? "success" : "info") fs-6">
+                                @switch (Model.Role_Name)
+                                {
+                                    case "Operator":
+                                        <i class="fas fa-cogs me-1"></i>
+
+                                        <text>Оператор</text>
+                                        break;
+                                    case "Storekeeper":
+                                        <i class="fas fa-warehouse me-1"></i>
+
+                                        <text>Комірник</text>
+                                        break;
+                                    case "Customer":
+                                        <i class="fas fa-user me-1"></i>
+
+                                        <text>Покупець</text>
+                                        break;
+                                    default:
+                                        @Model.Role_Name
+                                        break;
+                                }
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Address Information -->
+                    @if (Model.Address != null)
+                    {
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-map-marker-alt me-2 text-danger"></i>Адреса доставки
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <strong>Місто:</strong><br>
+                                        <span class="text-muted">@Model.Address.City</span>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <strong>Регіон:</strong><br>
+                                        <span class="text-muted">@Model.Address.Region</span>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <strong>Будинок:</strong><br>
+                                        <span class="text-muted">№ @Model.Address.House_Number</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Адреса доставки не вказана
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>На головну
+                        </a>
+
+                        @if (Model.Role_Name == "Customer")
+                        {
+                            <a href="@Url.Action("MyOrders", "Cart")" class="btn btn-outline-info">
+                                <i class="fas fa-list-alt me-2"></i>Мої замовлення
+                            </a>
+                            <a href="@Url.Action("Index", "Cart")" class="btn btn-outline-success">
+                                <i class="fas fa-shopping-cart me-2"></i>Кошик
+                            </a>
+                        }
+                        else if (Model.Role_Name == "Operator")
+                        {
+                            <a href="@Url.Action("Index", "Operator")" class="btn btn-outline-primary">
+                                <i class="fas fa-cogs me-2"></i>Панель оператора
+                            </a>
+                        }
+                        else if (Model.Role_Name == "Storekeeper")
+                        {
+                            <a href="@Url.Action("Index", "Storekeeper")" class="btn btn-outline-success">
+                                <i class="fas fa-warehouse me-2"></i>Панель комірника
+                            </a>
+                        }
+
+                        <form method="post" action="@Url.Action("Logout", "Account")" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Вийти з акаунта
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information for Different Roles -->
+            @if (Model.Role_Name == "Customer")
+            {
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="feature-icon bg-primary mb-3">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <h6>Швидкі покупки</h6>
+                                <p class="text-muted small">Зручний кошик та швидке оформлення замовлень</p>
+                                <a href="@Url.Action("Catalog", "Home")" class="btn btn-sm btn-outline-primary">
+                                    Каталог товарів
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="feature-icon bg-info mb-3">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <h6>Відстеження замовлень</h6>
+                                <p class="text-muted small">Слідкуйте за статусом ваших замовлень в реальному часі</p>
+                                <a href="@Url.Action("MyOrders", "Cart")" class="btn btn-sm btn-outline-info">
+                                    Мої замовлення
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Role_Name == "Operator")
+            {
+                <div class="card mt-4 border-primary">
+                    <div class="card-body">
+                        <h6 class="text-primary">
+                            <i class="fas fa-cogs me-2"></i>Функції оператора
+                        </h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Управління замовленнями</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Зміна статусів замовлень</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Управління товарами</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Перегляд статистики</li>
+                        </ul>
+                    </div>
+                </div>
+            }
+            else if (Model.Role_Name == "Storekeeper")
+            {
+                <div class="card mt-4 border-success">
+                    <div class="card-body">
+                        <h6 class="text-success">
+                            <i class="fas fa-warehouse me-2"></i>Функції комірника
+                        </h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Збирання замовлень</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Відправка товарів</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Управління складом</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Контроль наявності товарів</li>
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

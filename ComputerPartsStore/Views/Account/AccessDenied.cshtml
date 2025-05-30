@@ -1,0 +1,189 @@
+﻿@{
+    ViewData["Title"] = "Доступ заборонено";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card border-0 shadow-custom">
+                <div class="card-body p-5">
+                    <!-- Error Icon -->
+                    <div class="mb-4">
+                        <i class="fas fa-shield-alt text-danger" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <!-- Error Message -->
+                    <h2 class="text-danger mb-3">Доступ заборонено</h2>
+                    <p class="text-muted mb-4">
+                        Вибачте, але у вас немає необхідних прав для доступу до цієї сторінки.
+                    </p>
+
+                    <!-- User Status Info -->
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info border-0 mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <div>
+                                    <strong>Ваш статус:</strong><br>
+                                    <small>
+                                        Ви увійшли як <strong>@User.FindFirst("FullName")?.Value</strong>
+                                        з роллю <span class="badge bg-secondary">@User.FindFirst("Role")?.Value</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning border-0 mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Можливо, вам потрібно увійти в систему для доступу до цієї сторінки.
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-3">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <!-- For authenticated users -->
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>Повернутися на головну
+                            </a>
+
+                            @if (User.HasClaim("Role", "Customer"))
+                            {
+                                <a href="@Url.Action("Catalog", "Home")" class="btn btn-outline-primary">
+                                    <i class="fas fa-shopping-bag me-2"></i>Переглянути каталог
+                                </a>
+                            }
+
+                            <a href="@Url.Action("Profile", "Account")" class="btn btn-outline-secondary">
+                                <i class="fas fa-user me-2"></i>Мій профіль
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- For guest users -->
+                            <a href="@Url.Action("Login", "Account")" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Увійти в систему
+                            </a>
+
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Зареєструватися
+                            </a>
+
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>На головну
+                            </a>
+                        }
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-question-circle me-2"></i>Потрібна допомога?
+                        </h6>
+                        <p class="small text-muted mb-2">
+                            Якщо ви вважаєте, що маєте право на доступ до цієї сторінки,
+                            зверніться до адміністратора системи.
+                        </p>
+                        <small class="text-muted">
+                            <i class="fas fa-envelope me-1"></i>
+                            admin@techstore.ua
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Accounts Info for Testing -->
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <div class="card mt-4 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-flask me-2"></i>Демо-акаунти для тестування
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-start">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-cogs me-2"></i>Оператор
+                                </h6>
+                                <p class="mb-1"><strong>Логін:</strong> operator</p>
+                                <p class="mb-2"><strong>Пароль:</strong> operator123</p>
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="quickLogin('operator', 'operator123')">
+                                    Увійти як оператор
+                                </button>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-success">
+                                    <i class="fas fa-warehouse me-2"></i>Комірник
+                                </h6>
+                                <p class="mb-1"><strong>Логін:</strong> storekeeper</p>
+                                <p class="mb-2"><strong>Пароль:</strong> store123</p>
+                                <button type="button" class="btn btn-sm btn-outline-success"
+                                        onclick="quickLogin('storekeeper', 'store123')">
+                                    Увійти як комірник
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <p class="mb-2">
+                                <strong>Або зареєструйтеся як покупець:</strong>
+                            </p>
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-sm btn-info">
+                                <i class="fas fa-user-plus me-2"></i>Створити акаунт покупця
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function quickLogin(username, password) {
+            // Create form for quick login
+            const form = $('<form>', {
+                'method': 'POST',
+                'action': '@Url.Action("Login", "Account")'
+            });
+
+            // Add form fields
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'Login',
+                'value': username
+            }));
+
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'Password',
+                'value': password
+            }));
+
+            // Add anti-forgery token
+            form.append($('@Html.AntiForgeryToken()'));
+
+            // Submit form
+            $('body').append(form);
+            form.submit();
+        }
+
+        // Auto-redirect after successful login
+        @if (TempData["LoginSuccess"] != null)
+        {
+            <text>
+                showToast('Успішний вхід в систему!', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Index", "Home")';
+                }, 2000);
+            </text>
+        }
+    </script>
+}

@@ -1,42 +1,76 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Інтернет-магазин комп'ютерних комплектуючих</title>
+    <title>@ViewData["Title"] - TechStore</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <!-- Top Info Bar -->
+    <div class="bg-dark text-white py-2">
         <div class="container">
-            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
-                <i class="fas fa-microchip me-2"></i>
-                TechStore
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small>
+                        <i class="fas fa-phone me-2"></i>+380 (67) 123-45-67
+                        <span class="mx-3">|</span>
+                        <i class="fas fa-envelope me-2"></i>info@techstore.ua
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small>
+                        <i class="fas fa-truck me-2"></i>Безкоштовна доставка від 1000₴
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold" href="@Url.Action("Index", "Home")">
+                <i class="fas fa-microchip text-primary me-2"></i>
+                <span class="text-primary">Tech</span><span class="text-secondary">Store</span>
             </a>
 
+            <!-- Mobile Toggle -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Main Menu -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "Home")">Головна</a>
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home me-1"></i>Головна
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Catalog", "Home")">Каталог</a>
+                        <a class="nav-link" href="@Url.Action("Catalog", "Home")">
+                            <i class="fas fa-th-large me-1"></i>Каталог
+                        </a>
                     </li>
                 </ul>
 
+                <!-- Right Side Menu -->
                 <ul class="navbar-nav">
                     @if (User.Identity.IsAuthenticated)
                     {
+                        <!-- Role-specific panels -->
                         @if (User.HasClaim("Role", "Operator"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Index", "Operator")">
+                                <a class="nav-link btn btn-outline-primary me-2" href="@Url.Action("Index", "Operator")">
                                     <i class="fas fa-cogs me-1"></i>Панель оператора
                                 </a>
                             </li>
@@ -44,43 +78,64 @@
                         else if (User.HasClaim("Role", "Storekeeper"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Index", "Storekeeper")">
+                                <a class="nav-link btn btn-outline-success me-2" href="@Url.Action("Index", "Storekeeper")">
                                     <i class="fas fa-warehouse me-1"></i>Панель комірника
                                 </a>
                             </li>
                         }
                         else
                         {
+                            <!-- Customer menu -->
                             <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Index", "Cart")">
-                                    <i class="fas fa-shopping-cart me-1"></i>
-                                    Кошик
-                                    <span class="badge bg-warning text-dark" id="cart-count">0</span>
+                                <a class="nav-link position-relative" href="@Url.Action("Index", "Cart")">
+                                    <i class="fas fa-shopping-cart me-1"></i>Кошик
+                                    <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                                          id="cart-count" style="font-size: 0.7rem;">0</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="@Url.Action("MyOrders", "Cart")">
-                                    <i class="fas fa-list me-1"></i>Мої замовлення
+                                    <i class="fas fa-list-alt me-1"></i>Мої замовлення
                                 </a>
                             </li>
                         }
 
+                        <!-- User Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>
-                                @User.FindFirst("FullName")?.Value
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                     style="width: 32px; height: 32px; font-size: 14px;">
+                                    @{
+                                        var fullName = User.FindFirst("FullName")?.Value;
+                                        var firstLetter = !string.IsNullOrEmpty(fullName) ? fullName.Split(' ').FirstOrDefault()?.Substring(0, 1) : "U";
+                                    }
+                                    @firstLetter
+                                </div>
+                                <span class="fw-medium">@User.FindFirst("FullName")?.Value</span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <h6 class="dropdown-header">
+                                        <i class="fas fa-user-circle me-2"></i>Мій акаунт
+                                    </h6>
+                                </li>
                                 <li>
                                     <a class="dropdown-item" href="@Url.Action("Profile", "Account")">
-                                        <i class="fas fa-user-circle me-2"></i>Профіль
+                                        <i class="fas fa-user me-2"></i>Профіль
                                     </a>
+                                </li>
+                                <li>
+                                    <span class="dropdown-item-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-tag me-1"></i>Роль: @User.FindFirst("Role")?.Value
+                                        </small>
+                                    </span>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="@Url.Action("Logout", "Account")">
+                                    <form method="post" action="@Url.Action("Logout", "Account")" class="d-inline">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item">
+                                        <button type="submit" class="dropdown-item text-danger">
                                             <i class="fas fa-sign-out-alt me-2"></i>Вийти
                                         </button>
                                     </form>
@@ -90,13 +145,14 @@
                     }
                     else
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Login", "Account")">
+                        <!-- Guest menu -->
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-primary" href="@Url.Action("Login", "Account")">
                                 <i class="fas fa-sign-in-alt me-1"></i>Увійти
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Register", "Account")">
+                            <a class="btn btn-primary" href="@Url.Action("Register", "Account")">
                                 <i class="fas fa-user-plus me-1"></i>Реєстрація
                             </a>
                         </li>
@@ -106,45 +162,129 @@
         </div>
     </nav>
 
-    <main role="main" class="pb-3">
+    <!-- Quick Access Demo Accounts (only visible when not authenticated) -->
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="bg-info text-white py-2">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <small>
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Демо-акаунти для тестування:</strong>
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-light btn-sm" onclick="quickLogin('operator', 'operator123')">
+                                <i class="fas fa-cogs me-1"></i>Оператор
+                            </button>
+                            <button type="button" class="btn btn-light btn-sm" onclick="quickLogin('storekeeper', 'store123')">
+                                <i class="fas fa-warehouse me-1"></i>Комірник
+                            </button>
+                            <button type="button" class="btn btn-light btn-sm" onclick="showRegisterForm()">
+                                <i class="fas fa-user me-1"></i>Покупець
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <main role="main">
+        <!-- Alert Messages -->
         @if (TempData["OrderSuccess"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                @TempData["OrderSuccess"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success alert-dismissible fade show m-0" role="alert">
+                <div class="container">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["OrderSuccess"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             </div>
         }
 
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                @TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success alert-dismissible fade show m-0" role="alert">
+                <div class="container">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             </div>
         }
 
         @if (TempData["Error"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                @TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-danger alert-dismissible fade show m-0" role="alert">
+                <div class="container">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             </div>
         }
 
         @RenderBody()
     </main>
 
-    <footer class="border-top footer text-muted bg-light">
-        <div class="container py-3">
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
             <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5>
+                        <i class="fas fa-microchip text-primary me-2"></i>
+                        <span class="text-primary">Tech</span><span class="text-secondary">Store</span>
+                    </h5>
+                    <p class="text-muted">
+                        Найкращий інтернет-магазин комп'ютерних комплектуючих в Україні.
+                        Якість, надійність та доступні ціни.
+                    </p>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h6>Каталог</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="@Url.Action("Catalog", "Home", new { categoryId = 1 })" class="text-muted">Процесори</a></li>
+                        <li><a href="@Url.Action("Catalog", "Home", new { categoryId = 2 })" class="text-muted">Відеокарти</a></li>
+                        <li><a href="@Url.Action("Catalog", "Home", new { categoryId = 3 })" class="text-muted">Пам'ять</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h6>Інформація</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted">Про нас</a></li>
+                        <li><a href="#" class="text-muted">Доставка</a></li>
+                        <li><a href="#" class="text-muted">Гарантія</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h6>Контакти</h6>
+                    <p class="mb-1">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        м. Львів, вул. Тестова, 1
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-phone me-2"></i>
+                        +380 (67) 123-45-67
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-envelope me-2"></i>
+                        info@techstore.ua
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p>&copy; 2025 - Інтернет-магазин комп'ютерних комплектуючих</p>
+                    <p class="mb-0 text-muted">
+                        &copy; 2025 TechStore. Всі права захищені.
+                    </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="@Url.Action("Privacy", "Home")">Політика конфіденційності</a>
+                    <a href="@Url.Action("Privacy", "Home")" class="text-muted">Політика конфіденційності</a>
                 </div>
             </div>
         </div>
@@ -155,50 +295,49 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
+        // Quick login function for demo accounts
+        function quickLogin(username, password) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("Login", "Account")';
+            form.style.display = 'none';
+
+            const loginInput = document.createElement('input');
+            loginInput.type = 'hidden';
+            loginInput.name = 'Login';
+            loginInput.value = username;
+
+            const passwordInput = document.createElement('input');
+            passwordInput.type = 'hidden';
+            passwordInput.name = 'Password';
+            passwordInput.value = password;
+
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            const existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (existingToken) {
+                tokenInput.value = existingToken.value;
+            }
+
+            form.appendChild(loginInput);
+            form.appendChild(passwordInput);
+            form.appendChild(tokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function showRegisterForm() {
+            window.location.href = '@Url.Action("Register", "Account")';
+        }
+
         // Update cart count on page load
-        $(document).ready(function() {
-            updateCartCount();
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
         });
-
-        function updateCartCount() {
-            // This would need to be implemented as an AJAX call to get cart count
-            // For now, we'll leave it as is
-        }
-
-        function addToCart(productId, quantity = 1) {
-            $.post('@Url.Action("AddToCart", "Cart")', {
-                productId: productId,
-                quantity: quantity
-            }, function(data) {
-                if (data.success) {
-                    $('#cart-count').text(data.cartCount);
-                    showToast(data.message, 'success');
-                } else {
-                    showToast(data.message, 'error');
-                }
-            });
-        }
-
-        function showToast(message, type) {
-            const toast = $(`
-                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed"
-                     style="top: 20px; right: 20px; z-index: 1055;" role="alert">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            `);
-
-            $('body').append(toast);
-            toast.toast('show');
-
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

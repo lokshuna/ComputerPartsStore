@@ -1,102 +1,38 @@
-﻿// Site-wide JavaScript functions
+﻿// Simple Site JavaScript
 
-$(document).ready(function () {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+// Global functions for cart management
+function addToCart(productId, quantity) {
+    quantity = quantity || 1;
 
-    // Initialize popovers
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/Cart/AddToCart', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-    // Auto-hide alerts after 5 seconds
-    $('.alert:not(.alert-permanent)').delay(5000).fadeOut('slow');
-
-    // Update cart count on page load
-    updateCartCount();
-
-    // Add loading state to form submissions
-    $('form').on('submit', function () {
-        $(this).find('button[type="submit"]').addClass('loading').prop('disabled', true);
-    });
-
-    // Add smooth scrolling to anchor links
-    $('a[href*="#"]').not('[href="#"]').not('[href="#0"]').click(function (event) {
-        if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') &&
-            location.hostname == this.hostname) {
-            var target = $(this.hash);
-            target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
-            if (target.length) {
-                event.preventDefault();
-                $('html, body').animate({
-                    scrollTop: target.offset().top - 70
-                }, 1000);
-            }
-        }
-    });
-
-    // Add ripple effect to buttons
-    $('.btn').on('click', function (e) {
-        var ripple = $('<span class="ripple"></span>');
-        var btn = $(this);
-        var btnOffset = btn.offset();
-        var xPos = e.pageX - btnOffset.left;
-        var yPos = e.pageY - btnOffset.top;
-
-        ripple.css({
-            position: 'absolute',
-            top: yPos + 'px',
-            left: xPos + 'px',
-            width: '0',
-            height: '0',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.5)',
-            transform: 'scale(0)',
-            animation: 'ripple 0.6s linear',
-            pointerEvents: 'none'
-        });
-
-        btn.css('position', 'relative').append(ripple);
-
-        setTimeout(function () {
-            ripple.remove();
-        }, 600);
-    });
-});
-
-// Shopping Cart Functions
-function addToCart(productId, quantity = 1) {
-    $.ajax({
-        url: '/Cart/AddToCart',
-        type: 'POST',
-        data: {
-            productId: productId,
-            quantity: quantity
-        },
-        success: function (response) {
-            if (response.success) {
-                updateCartCount(response.cartCount);
-                showToast(response.message, 'success');
-
-                // Animate the cart icon
-                animateCartIcon();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        updateCartCount(response.cartCount);
+                    } else {
+                        showToast(response.message || 'Помилка при додаванні товару', 'error');
+                    }
+                } catch (e) {
+                    showToast('Помилка при додаванні товару', 'error');
+                }
             } else {
-                showToast(response.message, 'error');
+                showToast('Помилка сервера', 'error');
             }
-        },
-        error: function () {
-            showToast('Помилка при додаванні товару до кошика', 'error');
         }
-    });
+    };
+
+    var params = 'productId=' + productId + '&quantity=' + quantity;
+    xhr.send(params);
 }
 
-function updateCartQuantity(productId, quantity) {
-    quantity = parseInt(quantity);
-
+function updateQuantity(productId, quantity) {
     if (quantity < 1) {
         removeFromCart(productId);
         return;
@@ -107,31 +43,29 @@ function updateCartQuantity(productId, quantity) {
         return;
     }
 
-    showLoading();
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/Cart/UpdateQuantity', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-    $.ajax({
-        url: '/Cart/UpdateQuantity',
-        type: 'POST',
-        data: {
-            productId: productId,
-            quantity: quantity
-        },
-        success: function (response) {
-            hideLoading();
-
-            if (response.success) {
-                updateCartDisplay(response);
-                showToast('Кількість товару оновлено', 'success');
-            } else {
-                showToast('Помилка при оновленні кількості', 'error');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    updateCartDisplay(response);
+                    showToast('Кількість оновлено', 'success');
+                } else {
+                    showToast('Помилка при оновленні', 'error');
+                    location.reload();
+                }
+            } catch (e) {
                 location.reload();
             }
-        },
-        error: function () {
-            hideLoading();
-            showToast('Помилка при оновленні кошика', 'error');
         }
-    });
+    };
+
+    var params = 'productId=' + productId + '&quantity=' + quantity;
+    xhr.send(params);
 }
 
 function removeFromCart(productId) {
@@ -139,244 +73,268 @@ function removeFromCart(productId) {
         return;
     }
 
-    showLoading();
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/Cart/RemoveFromCart', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-    $.ajax({
-        url: '/Cart/RemoveFromCart',
-        type: 'POST',
-        data: { productId: productId },
-        success: function (response) {
-            hideLoading();
-
-            if (response.success) {
-                $('#cart-item-' + productId).fadeOut(300, function () {
-                    $(this).remove();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    var itemElement = document.getElementById('cart-item-' + productId);
+                    if (itemElement) {
+                        itemElement.style.display = 'none';
+                    }
                     updateCartDisplay(response);
-                });
-                showToast('Товар видалено з кошика', 'success');
+                    showToast('Товар видалено', 'success');
 
-                // Check if cart is empty
-                if (response.cartCount === 0) {
-                    setTimeout(() => location.reload(), 1000);
+                    if (response.cartCount === 0) {
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    showToast('Помилка при видаленні', 'error');
                 }
-            } else {
-                showToast('Помилка при видаленні товару', 'error');
+            } catch (e) {
+                location.reload();
             }
-        },
-        error: function () {
-            hideLoading();
-            showToast('Помилка при видаленні товару', 'error');
         }
-    });
+    };
+
+    var params = 'productId=' + productId;
+    xhr.send(params);
 }
 
-function updateCartCount(count = null) {
-    if (count !== null) {
-        $('#cart-count').text(count);
-        animateCartIcon();
-    } else {
-        // Load cart count from server
-        $.get('/Cart/GetCartCount', function (count) {
-            $('#cart-count').text(count);
-        });
+function updateCartCount(count) {
+    var cartCountElement = document.getElementById('cart-count');
+    if (cartCountElement) {
+        if (count !== undefined) {
+            cartCountElement.textContent = count;
+            if (count > 0) {
+                cartCountElement.classList.remove('d-none');
+            } else {
+                cartCountElement.classList.add('d-none');
+            }
+        } else {
+            // Load from server
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/Cart/GetCartCount', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var cartCount = parseInt(xhr.responseText) || 0;
+                    cartCountElement.textContent = cartCount;
+                    if (cartCount > 0) {
+                        cartCountElement.classList.remove('d-none');
+                    } else {
+                        cartCountElement.classList.add('d-none');
+                    }
+                }
+            };
+            xhr.send();
+        }
     }
 }
 
 function updateCartDisplay(response) {
     if (response.cartTotal !== undefined) {
-        $('#total-amount').text(formatCurrency(response.cartTotal));
-        $('#final-total').text(formatCurrency(response.cartTotal));
+        var totalElements = document.querySelectorAll('#total-amount, #final-total');
+        for (var i = 0; i < totalElements.length; i++) {
+            if (totalElements[i]) {
+                totalElements[i].textContent = formatCurrency(response.cartTotal);
+            }
+        }
     }
 
     if (response.cartCount !== undefined) {
-        $('#items-count').text(response.cartCount);
+        var countElement = document.getElementById('items-count');
+        if (countElement) {
+            countElement.textContent = response.cartCount;
+        }
         updateCartCount(response.cartCount);
     }
 }
 
-function animateCartIcon() {
-    $('#cart-count').addClass('animate__animated animate__bounce');
-    setTimeout(() => {
-        $('#cart-count').removeClass('animate__animated animate__bounce');
-    }, 1000);
+function formatCurrency(amount) {
+    return amount.toLocaleString('uk-UA') + ' ₴';
 }
 
-// Toast Notifications
-function showToast(message, type = 'info', duration = 5000) {
-    const toastId = 'toast-' + Date.now();
-    const bgClass = {
+function showToast(message, type) {
+    type = type || 'info';
+
+    var toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
+    }
+
+    var icons = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    };
+
+    var bgClasses = {
         'success': 'bg-success',
         'error': 'bg-danger',
         'warning': 'bg-warning',
         'info': 'bg-info'
-    }[type] || 'bg-info';
-
-    const toast = $(`
-        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" 
-             role="alert" aria-live="assertive" aria-atomic="true" 
-             style="position: fixed; top: 20px; right: 20px; z-index: 1060; min-width: 300px;">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-${getToastIcon(type)} me-2"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `);
-
-    $('body').append(toast);
-
-    const bsToast = new bootstrap.Toast(toast[0], {
-        delay: duration
-    });
-
-    bsToast.show();
-
-    // Remove from DOM after hiding
-    toast.on('hidden.bs.toast', function () {
-        $(this).remove();
-    });
-}
-
-function getToastIcon(type) {
-    const icons = {
-        'success': 'check-circle',
-        'error': 'exclamation-circle',
-        'warning': 'exclamation-triangle',
-        'info': 'info-circle'
     };
-    return icons[type] || 'info-circle';
+
+    var toastElement = document.createElement('div');
+    toastElement.className = 'toast align-items-center text-white ' + bgClasses[type] + ' border-0';
+    toastElement.setAttribute('role', 'alert');
+
+    toastElement.innerHTML =
+        '<div class="d-flex">' +
+        '<div class="toast-body">' +
+        '<i class="fas ' + icons[type] + ' me-2"></i>' +
+        message +
+        '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>' +
+        '</div>';
+
+    toastContainer.appendChild(toastElement);
+
+    // Auto remove after 5 seconds
+    setTimeout(function () {
+        if (toastElement.parentNode) {
+            toastElement.remove();
+        }
+    }, 5000);
 }
 
-// Loading States
-function showLoading(target = 'body') {
-    const loader = $(`
-        <div class="loading-overlay">
-            <div class="loading-spinner">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Завантаження...</span>
-                </div>
-            </div>
-        </div>
-    `);
+// Quick login function for demo
+function quickLogin(username, password) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/Account/Login';
+    form.style.display = 'none';
 
-    $(target).append(loader);
-}
+    var loginInput = document.createElement('input');
+    loginInput.type = 'hidden';
+    loginInput.name = 'Login';
+    loginInput.value = username;
 
-function hideLoading(target = 'body') {
-    $(target).find('.loading-overlay').fadeOut(300, function () {
-        $(this).remove();
-    });
-}
+    var passwordInput = document.createElement('input');
+    passwordInput.type = 'hidden';
+    passwordInput.name = 'Password';
+    passwordInput.value = password;
 
-// Utility Functions
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('uk-UA', {
-        style: 'decimal',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount) + ' ₴';
-}
-
-function formatDate(date) {
-    return new Intl.DateTimeFormat('uk-UA', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(new Date(date));
-}
-
-function debounce(func, wait, immediate) {
-    let timeout;
-    return function executedFunction() {
-        const context = this;
-        const args = arguments;
-        const later = function () {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        };
-        const callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
-    };
-}
-
-// Form Validation
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function validatePhone(phone) {
-    const re = /^380\d{9}$/;
-    return re.test(phone.replace(/\D/g, ''));
-}
-
-// Keyboard Shortcuts
-$(document).keydown(function (e) {
-    // Ctrl+/ or Cmd+/ for search
-    if ((e.ctrlKey || e.metaKey) && e.keyCode === 191) {
-        e.preventDefault();
-        $('input[name="search"]').focus();
+    // Get anti-forgery token
+    var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    if (tokenInput) {
+        var newTokenInput = document.createElement('input');
+        newTokenInput.type = 'hidden';
+        newTokenInput.name = '__RequestVerificationToken';
+        newTokenInput.value = tokenInput.value;
+        form.appendChild(newTokenInput);
     }
 
-    // Escape to close modals
-    if (e.keyCode === 27) {
-        $('.modal.show').modal('hide');
+    form.appendChild(loginInput);
+    form.appendChild(passwordInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl);
+        });
+    }
+
+    // Update cart count on page load
+    updateCartCount();
+
+    // Auto-hide alerts after 5 seconds
+    var alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    setTimeout(function () {
+        for (var i = 0; i < alerts.length; i++) {
+            alerts[i].style.opacity = '0';
+            setTimeout(function (alert) {
+                return function () {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                };
+            }(alerts[i]), 500);
+        }
+    }, 5000);
+
+    // Add form submission loading states
+    var forms = document.querySelectorAll('form');
+    for (var i = 0; i < forms.length; i++) {
+        forms[i].addEventListener('submit', function () {
+            var submitBtn = this.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                var originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Обробка...';
+
+                // Re-enable after delay
+                setTimeout(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    }
+
+    // Add smooth scroll to anchor links
+    var anchorLinks = document.querySelectorAll('a[href*="#"]');
+    for (var i = 0; i < anchorLinks.length; i++) {
+        anchorLinks[i].addEventListener('click', function (e) {
+            var href = this.getAttribute('href');
+            if (href !== '#' && href !== '#0') {
+                var target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        });
     }
 });
 
-// Add ripple animation CSS
-const rippleCSS = `
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
+// Keyboard shortcuts
+document.addEventListener('keydown', function (e) {
+    // Escape to close modals
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        var modals = document.querySelectorAll('.modal.show');
+        for (var i = 0; i < modals.length; i++) {
+            if (typeof bootstrap !== 'undefined') {
+                var modal = bootstrap.Modal.getInstance(modals[i]);
+                if (modal) {
+                    modal.hide();
+                }
+            }
         }
     }
-    
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-    
-    .loading-spinner {
-        text-align: center;
-    }
-`;
 
-// Inject CSS
-if (!document.getElementById('site-css')) {
-    const style = document.createElement('style');
-    style.id = 'site-css';
-    style.textContent = rippleCSS;
-    document.head.appendChild(style);
-}
-
-// Export functions for use in other scripts
-window.SiteUtils = {
-    addToCart,
-    updateCartQuantity,
-    removeFromCart,
-    showToast,
-    showLoading,
-    hideLoading,
-    formatCurrency,
-    formatDate,
-    debounce,
-    validateEmail,
-    validatePhone
-};
+    // Ctrl+/ for search
+    if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.keyCode === 191)) {
+        e.preventDefault();
+        var searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }
+});

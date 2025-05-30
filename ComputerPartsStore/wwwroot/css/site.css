@@ -1,340 +1,561 @@
-﻿/* Основні стилі */
+﻿/* Clean CSS without problematic constructs */
+
+/* Base Styles */
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
+    color: #212529;
+    background-color: #ffffff;
 }
 
-/* Заголовок сайту */
-.site-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+/* Navigation */
+.navbar {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .navbar-brand {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: white !important;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .navbar-nav .nav-link {
-    color: rgba(255,255,255,0.9) !important;
+    padding: 0.5rem 1rem;
     font-weight: 500;
-    transition: color 0.3s ease;
+    color: #212529;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin: 0 0.25rem;
 }
 
     .navbar-nav .nav-link:hover {
-        color: white !important;
-        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
     }
 
-/* Головна секція */
+    .navbar-nav .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+/* User Avatar */
+.user-avatar {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+.btn-primary {
+    background: linear-gradient(45deg, #0d6efd, #0056b3);
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #0056b3, #0d6efd);
+    }
+
+.btn-outline-primary {
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+    background: transparent;
+}
+
+    .btn-outline-primary:hover {
+        background: #0d6efd;
+        color: white;
+    }
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+.card-header {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Product Cards */
+.product-card {
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+    .product-card .card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-card .card-text {
+        flex-grow: 1;
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+.product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #198754;
+    margin: 0.5rem 0;
+}
+
+/* Category Cards */
+.category-card {
+    text-align: center;
+    padding: 2rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+    .category-card:hover {
+        border-color: #0d6efd;
+        background: linear-gradient(45deg, #f8f9fa, #ffffff);
+    }
+
+    .category-card i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #0d6efd;
+    }
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+.form-label {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+/* Tables */
+.table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+        padding: 1rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alert-success {
+    background: linear-gradient(45deg, #d1edff, #b8e6b8);
+    color: #0f5132;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, #f8d7da, #f5c2c7);
+    color: #842029;
+}
+
+.alert-warning {
+    background: linear-gradient(45deg, #fff3cd, #ffecb5);
+    color: #664d03;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, #d1ecf1, #b8e6ff);
+    color: #055160;
+}
+
+/* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
     color: white;
     padding: 4rem 0;
     text-align: center;
-    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
 }
 
     .hero-section h1 {
         font-size: 3rem;
-        margin-bottom: 1rem;
         font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .hero-section p {
         font-size: 1.2rem;
         opacity: 0.9;
         max-width: 600px;
-        margin: 0 auto;
+        margin: 0 auto 2rem;
     }
 
-/* Категорії товарів */
-.categories-section {
-    padding: 3rem 0;
-    background: white;
-}
-
-.section-title {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 3rem;
-    color: #2c3e50;
-    font-weight: 600;
-}
-
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.category-card {
-    background: white;
-    border-radius: 15px;
-    padding: 2rem;
-    text-align: center;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* Dropdown Menus */
+.dropdown-menu {
     border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
 }
 
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.25rem;
+}
+
+    .dropdown-item:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
     }
 
+.dropdown-divider {
+    margin: 0.5rem 0;
+    opacity: 0.2;
+}
+
+/* Toast Notifications */
+.toast {
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    min-width: 350px;
+}
+
+/* Loading Spinner */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+
+/* Feature Icons */
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    background: linear-gradient(45deg, #0d6efd, #0056b3);
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* Status Indicators */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+    .status-indicator.online {
+        background-color: #198754;
+        box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.3);
+    }
+
+    .status-indicator.offline {
+        background-color: #6c757d;
+    }
+
+/* Custom Utilities */
+.text-gradient {
+    background: linear-gradient(45deg, #0d6efd, #0056b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-custom {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.border-custom {
+    border: 2px solid #0d6efd !important;
+}
+
+/* Floating Elements */
+.floating-icons {
+    position: relative;
+    height: 300px;
+}
+
+.floating-icon {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+    .floating-icon:nth-child(1) {
+        top: 20%;
+        left: 10%;
+    }
+
+    .floating-icon:nth-child(2) {
+        top: 10%;
+        right: 20%;
+    }
+
+    .floating-icon:nth-child(3) {
+        bottom: 30%;
+        left: 20%;
+    }
+
+    .floating-icon:nth-child(4) {
+        bottom: 10%;
+        right: 10%;
+    }
+
+/* Category Icons */
 .category-icon {
     width: 80px;
     height: 80px;
-    margin: 0 auto 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0 auto;
+    background: linear-gradient(135deg, #0d6efd, #0056b3);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
     color: white;
-}
-
-.category-card h3 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    font-size: 1.4rem;
-}
-
-.category-card p {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-}
-
-/* Рекомендовані товари */
-.products-section {
-    padding: 3rem 0;
-    background: #f8f9fa;
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-}
-
-.product-card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    }
-
-.product-image {
-    width: 100%;
-    height: 200px;
-    background: #f1f2f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    color: #ddd;
-    position: relative;
-}
-
-    .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .product-image::before {
-        content: "📷 Тут буде фото";
-        position: absolute;
-        font-size: 1rem;
-        color: #999;
-    }
-
-.product-info {
-    padding: 1.5rem;
-}
-
-.product-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.product-description {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-}
-
-.product-price {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #27ae60;
-    margin-bottom: 1rem;
-}
-
-.product-stock {
-    font-size: 0.8rem;
-    color: #3498db;
-    margin-bottom: 1rem;
-}
-
-/* Кнопки */
-.btn-custom {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    padding: 0.7rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 500;
     transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
 }
 
-    .btn-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        color: white;
-    }
-
-.btn-outline-custom {
-    border: 2px solid #667eea;
-    color: #667eea;
-    background: transparent;
-    padding: 0.7rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
 }
 
-    .btn-outline-custom:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-/* Каталог товарів */
-.catalog-filters {
-    background: white;
+/* Feature Cards */
+.feature-card {
     padding: 2rem;
-    border-radius: 15px;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
-.filter-group {
-    margin-bottom: 1rem;
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+/* Statistics */
+.stat-item {
+    padding: 1rem;
 }
 
-    .filter-group label {
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-
-.form-control, .form-select {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    padding: 0.7rem;
-    transition: border-color 0.3s ease;
-}
-
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-
-/* Адаптивність */
-@media (max-width: 768px) {
-    .hero-section h1 {
-        font-size: 2rem;
-    }
-
-    .category-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .products-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .section-title {
-        font-size: 2rem;
-    }
-}
-
-/* Анімації */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.fade-in-up {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-/* Кошик */
-.cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #e74c3c;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.7rem;
+/* Product Images */
+.product-image {
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    margin-bottom: 1rem;
 }
 
-.nav-item {
-    position: relative;
+/* Improved Accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
 }
 
-/* Футер */
-.site-footer {
-    background: #2c3e50;
-    color: white;
-    padding: 2rem 0;
-    margin-top: 3rem;
+/* Responsive Design */
+.min-vh-50 {
+    min-height: 50vh;
+}
+
+/* Contact Items */
+.contact-item {
+    padding: 0.5rem;
+    border-left: 3px solid #0d6efd;
+    background: rgba(13, 110, 253, 0.05);
+    border-radius: 0 5px 5px 0;
+}
+
+/* Security Features */
+.security-feature {
     text-align: center;
+    padding: 1rem;
 }
 
-    .site-footer p {
-        margin: 0;
-        opacity: 0.8;
+/* Timeline */
+.order-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 50px;
+}
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -15px;
+        top: 30px;
+        bottom: -30px;
+        width: 2px;
+        background-color: #dee2e6;
     }
+
+    .timeline-item:last-child::before {
+        display: none;
+    }
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline-item.completed .timeline-marker {
+    background-color: #198754;
+    color: white;
+}
+
+.timeline-item.completed::before {
+    background-color: #198754;
+}
+
+/* Product Icons */
+.product-icon {
+    border: 2px solid #e9ecef;
+}
+
+/* Price Info */
+.price-info .unit-price {
+    font-size: 0.85rem;
+}
+
+/* Info Items */
+.info-item {
+    border-bottom: 1px solid #f8f9fa;
+    padding-bottom: 0.5rem;
+}
+
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+/* Mobile Responsive */
+/* Smaller screens */
+/* Using max-width instead of problematic @media syntax */
+/* Mobile styles will be applied through Bootstrap classes */
+
+/* Print Styles */
+/* Print styles will be handled by Bootstrap */
+
+/* Animations will be handled by JavaScript */
